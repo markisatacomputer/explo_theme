@@ -1,0 +1,248 @@
+<?php
+/*
+* Implements hook_ctools_plugin_directory.
+*/
+function explo_theme_ctools_plugin_directory($owner, $plugin_type) {
+  // we'll be nice and limit scandir() calls
+  if ($owner == 'ctools' && $plugin_type == 'content_types') {
+    return 'plugins/content_types';
+  }
+}
+
+/**
+ * Implements hook_theme.
+ */
+function explo_theme_theme($existing, $type, $theme, $path) {
+  $items['explo_banner'] = array(
+    'variables' => array(
+      'classes' => array(),     // css classes array
+      'col_classes' => array(), // css classes array
+      'image' => NULL,          // a file array
+      'link' => NULL,           // a link render array
+      'link_text' => NULL,      // string
+      'link_url' => NULL,       // string
+      'prelude' => NULL,        // text
+      'title' => NULL,          // text
+      'banner_text' => NULL,    // formated text
+    ),
+    'template' => 'banner',
+    'path' => $path . '/templates/',
+  );
+  $items['explo_text_box'] = array(
+    'variables' => array(
+      'classes' => array(), // css classes array
+      'link' => NULL,       // a link render array
+      'link_text' => NULL,  // string
+      'link_url' => NULL,   // string
+      'prelude' => NULL,    // string
+      'title' => NULL,      // string
+      'text' => NULL,       // string
+      'bgcolor' => NULL,    // class name
+      'textcolor' => NULL,  // class name
+      'linkcolor' => NULL,  // class name
+      'opacity' => NULL,    // string
+    ),
+    'template' => 'text-box',
+    'path' => $path . '/templates/',
+  );
+  $items['explo_banner_text_box_large'] = array(
+    'variables' => array(
+      'image' => NULL,
+      'link_text' => NULL,
+      'link_url' => NULL,
+      'prelude' => NULL,
+      'title' => NULL,
+      'banner_text' => NULL,
+      'textcolor' => NULL,
+      'bgcolor' => NULL,
+      'hposition' => NULL,
+      'width' => NULL,
+      'vposition' => NULL,
+    ),
+    'template' => 'banner-textbox-lrg',
+    'path' => $path . '/templates/',
+  );
+  $items['explo_banner_text_box_small'] = array(
+    'variables' => array(
+      'image' => NULL,
+      'link_text' => NULL,
+      'link_url' => NULL,
+      'prelude' => NULL,
+      'title' => NULL,
+      'banner_text' => NULL,
+      'bgcolor' => NULL,
+      'textcolor' => 'text-white',
+      'hposition' => NULL,
+      'opacity' => NULL,
+    ),
+    'template' => 'banner',
+    'path' => $path . '/templates/',
+  );
+  $items['explo_banner_text_overlay'] = array(
+    'variables' => array(
+      'image' => NULL,
+      'link_text' => NULL,
+      'link_url' => NULL,
+      'prelude' => NULL,
+      'title' => NULL,
+      'banner_text' => NULL,
+      'hposition' => NULL,
+      'width' => NULL,
+      'vposition' => NULL,
+    ),
+    'template' => 'banner',
+    'path' => $path . '/templates/',
+  );
+
+  return $items;
+}
+
+function template_preprocess_explo_text_box (&$vars) {
+  //  classes
+  $vars['classes_array'][] = 'container';
+  $vars['classes_array'][] = 'py-4';
+  if (!empty($vars['bgcolor'])) $vars['classes_array'][] = $vars['bgcolor'];
+  if (!empty($vars['opacity'])) $vars['classes_array'][] = $vars['opacity'];
+  if (!empty($vars['textcolor'])) $vars['classes_array'][] = $vars['textcolor'];
+
+  //  format text - no <p>'s please
+  $vars['text'] = strip_tags($vars['text'], "<strong><em><b><i>");
+
+  //  format link
+  $vars['link'] = array(
+    '#theme' => 'link',
+    '#text' => $vars['link_text'],
+    '#path' => $vars['link_url'],
+    '#options' => array(
+      'attributes' => array(
+        'class' => array(),
+      ),
+      'html' => TRUE,
+     ),
+  );
+  if (isset($vars['linkcolor'])) $vars['link']['#options']['attributes']['class'][] = $vars['linkcolor'];
+}
+
+function template_preprocess_explo_banner (&$vars) {
+
+  /*$extra = array(
+    '#attached' => array(
+      'library' => array('bootstrap'),
+    ),
+  );
+
+  $vars['extra'] = render($extra);
+  */
+
+  //  background color
+  if (!empty($vars['bgcolor'])) $vars['classes_array'][] = $vars['bgcolor'];
+
+  //  text color
+  if (!empty($vars['text-color'])) $vars['classes'][] = $vars['text-color'];
+
+  //  background image
+  if (!empty($vars['image'])) {
+    $vars['classes_array'][] = 'bg-image';
+    $imageurl = file_create_url($vars['image']->uri);
+    $vars['style'] = "background-image: url('$imageurl');";
+  }
+
+  //  process col_classes
+  $vars['row_classes'] = implode(' ', $vars['row_classes']);
+  $vars['col_classes'] = implode(' ', $vars['col_classes']);
+
+  //  Extract banner text
+  $text = !empty($vars['banner_text']['safe_value']) ? $vars['banner_text']['safe_value'] : ( !empty($vars['banner_text']['value']) ? $vars['banner_text']['value'] : ( is_string($vars['banner_text']) ? $vars['banner_text'] : '') );
+
+  //  Theme text box
+  $vars['text_box'] = theme('explo_text_box', array(
+    'link_text' => $vars['link_text'],
+    'link_url' => $vars['link_url'],
+    'prelude' => $vars['prelude'],
+    'title' => $vars['title'],
+    'text' => $text,
+    'bgcolor' => $vars['bgcolor'],
+    'textcolor' => $vars['textcolor'],
+    'linkcolor' => $vars['textcolor'],
+    'opacity' => $vars['opacity'],
+  ));
+}
+
+function template_preprocess_explo_banner_text_box_large (&$vars) {
+
+  //  width
+  $vars['img_col_classes'] = 'h-100';
+  switch ($vars['width']) {
+    case '25%':
+      $vars['col_classes'][] = 'col-md-3';
+      $vars['img_col_classes'] .= ' col-md-9';
+      break;
+
+    case '33%':
+      $vars['col_classes'][] = 'col-md-4';
+      $vars['img_col_classes'] .= ' col-md-8';
+      break;
+
+    case '50%':
+      $vars['col_classes'][] = 'col-md-6';
+      $vars['img_col_classes'] .= ' col-md-6';
+      break;
+  }
+
+  //  horizontal position
+  switch ($vars['hposition']) {
+    case 'left':
+      $vars['col_classes'][] = 'align-self-start';
+      break;
+
+    case 'right':
+      $vars['col_classes'][] = 'align-self-end';
+      break;
+  }
+
+  //  horizontal position
+  switch ($vars['vposition']) {
+    case 'top':
+      $vars['col_classes'][] = 'align-items-start';
+      break;
+
+    case 'middle':
+      $vars['col_classes'][] = 'align-items-center';
+      break;
+
+    case 'bottom':
+      $vars['col_classes'][] = 'align-items-end';
+      break;
+
+  }
+
+  //  Render Image
+  $vars['img'] = theme('image', array('path' => $vars['image']->uri));
+
+  //  send to parent component
+  template_preprocess_explo_banner($vars);
+}
+
+function template_preprocess_explo_banner_text_box_small (&$vars) {
+  //  Always 33% width
+  $vars['col_classes'][] = 'col-md-4';
+
+  //  horizontal position
+  switch ($vars['hposition']) {
+    case 'left':
+      $vars['row_classes'][] = 'justify-content-start';
+      break;
+
+    case 'right':
+      $vars['row_classes'][] = 'justify-content-end';
+      break;
+  }
+
+  //  send to parent component
+  template_preprocess_explo_banner($vars);
+}
+
+function template_preprocess_explo_banner_text_overlay (&$vars) {
+  //  send to parent component
+  template_preprocess_explo_banner($vars);
+}

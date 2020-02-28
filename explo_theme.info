@@ -1,0 +1,11 @@
+name = "Explo Theme Customizations"
+description = "Custom theme implementations for Exploratorium.edu"
+package = "Explo"
+core = 7.x
+dependencies[] = libraries
+dependencies[] = bootstrap_library
+dependencies[] = panels
+dependencies[] = panelizer
+dependencies[] = media
+
+version = "7.x-1.0"
